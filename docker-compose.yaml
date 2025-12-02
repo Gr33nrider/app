@@ -16,7 +16,7 @@ services:
     image: dxrkn3ss/crud-mysql:latest
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_ROOT_PASSWORD: 'r'
       MYSQL_DATABASE: 'notepaddb'
     ports:
       - "3306:3306"
