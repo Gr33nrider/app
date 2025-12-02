@@ -1,0 +1,86 @@
+pipeline {
+    agent any
+
+    environment {
+        SWARM_STACK_NAME = "app"
+        DB_SERVICE = "db"         
+        DB_USER = "root"
+        DB_PASSWORD = "root"
+        DB_NAME = "notepaddb"
+        FRONTEND_URL = "http://192.168.0.1:8080"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                script {
+                    sh "docker build -f php.Dockerfile -t dxrkn3ss/crud-backend:latest ."
+                    sh "docker build -f mysql.Dockerfile -t dxrkn3ss/crud-mysql:latest ."            
+                }
+            }
+        }
+	
+	stage('Deploy to Docker Swarm') {
+	    steps {
+	        script {
+	            sh '''
+	                if ! docker info | grep -q "Swarm: active"; then
+	                    docker sawrm init || true
+	                fi
+	            '''
+	            sh "docker stack deploy --with-registry-auth -c docker-compose.yaml ${SWARM_STACK_NAME}"
+	        }
+	    }
+	}
+	
+	stage('Run Tests') {
+	    steps {
+	        script {
+	            echo 'Ожидание запуска сервисов...'
+	            sleep time: 30, unit: 'SECONDS'
+	            
+	            echo 'Проверка доступности фронта...'
+	            sh '''
+	                if ! curl -fsS ${FRONTEND_URL}; then
+	                    echo 'Фронт недоступен'
+	                    exit 1
+	                fi
+	            '''
+	            
+	            echo 'Получение ID контейнера базы данных...'
+	            def dbContainerID = sh(
+	                script: "docker ps --filter name=${SWARM_STACK_NAME}_${DB_SERVICE} --format '{{.ID}}'",
+	                returnStdout: true
+	            ).trim()
+	            
+	            if (!dbContainerID) {
+	                error("Контейнер базы данных не найден")
+	            }
+	            
+	            echo 'Подключение к MySQL и проверка таблиц...'
+	            sh """
+	                 docker exec ${dbContainerID} mysql -u ${DB_USER} -p ${DB_PASSWORD} -e 'USE ${DB_NAME};SHOW TABLES;'
+	               """
+	        }
+	    }
+	}
+	
+	
+    post {
+        success {
+            echo 'Пайплайн выполнен успешно'
+        }
+        failure {
+            echo 'Пайплайн завершился с ошибкой'
+        }
+        always {
+            cleanWs()
+        }
+    }
+}
