@@ -6,7 +6,7 @@ pipeline {
         SWARM_STACK_NAME = "app"
         DB_SERVICE = "db"         
         DB_USER = "root"
-        DB_PASSWORD = "root"
+        DB_PASSWORD = "r"
         DB_NAME = "notepaddb"
         FRONTEND_URL = "http://192.168.0.1:8080"
     }
