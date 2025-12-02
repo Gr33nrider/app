@@ -31,7 +31,7 @@ pipeline {
 	        script {
 	            sh '''
 	                if ! docker info | grep -q "Swarm: active"; then
-	                    docker sawrm init || true
+	                    docker swarm init || true
 	                fi
 	            '''
 	            sh "docker stack deploy --with-registry-auth -c docker-compose.yaml ${SWARM_STACK_NAME}"
@@ -65,7 +65,7 @@ pipeline {
 	            
 	            echo 'Подключение к MySQL и проверка таблиц...'
 	            sh """
-	                 docker exec ${dbContainerID} mysql -u ${DB_USER} -p ${DB_PASSWORD} -e 'USE ${DB_NAME};SHOW TABLES;'
+	                 docker exec ${dbContainerID} mysql -u${DB_USER} -p${DB_PASSWORD} -e 'USE ${DB_NAME};SHOW TABLES;'
 	               """
 	        }
 	    }
