@@ -67,7 +67,25 @@ pipeline {
                     echo 'Подключение к MySQL и проверка таблиц...'
                     sh """
                          docker exec ${dbContainerID} mysql -u ${DB_USER} -p${DB_PASSWORD} -e 'USE ${DB_NAME};SHOW TABLES;'
-                       """
+                       """					
+                }
+            }
+        }
+
+		stage('Import Dump to DB server') {
+			steps {
+				echo "Загружаем SQL из репозитория и создаём таблицы"
+                sh """
+                CONTAINER_ID=\$(docker ps -qf "name=${SWARM_STACK_NAME}_${DB_SERVICE}")
+                docker exec -i \$CONTAINER_ID mysql -u${DB_USER} -p${DB_PASSWORD} ${DB_NAME} < notepaddb.sql
+                echo "SQL из файла загружен в MySQL"
+                """
+			}
+		}
+		
+		stage('Check DB Columns') {
+			steps {
+				script {
 					echo 'Проверка количества столбцов в таблице pages'
 					sh """
 					     docker exec ${dbContainerID} mysql -u ${DB_USER} -p${DB_PASSWORD} ${DB_NAME} -e "
@@ -86,10 +104,10 @@ pipeline {
 						fi
 						 
 					   """
-					
-                }
-            }
-        }
+				}
+			}
+		}
+		
     }
 
     post {
