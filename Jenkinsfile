@@ -75,6 +75,10 @@ pipeline {
 		stage('Import Dump to DB server') {
 			steps {
 				echo "Загружаем SQL из репозитория и создаём таблицы"
+				def dbContainerID = sh(
+                        script: "docker ps --filter name=${SWARM_STACK_NAME}_${DB_SERVICE} --format '{{.ID}}'",
+                        returnStdout: true
+                    ).trim()
                 sh """
 				
 				docker exec ${dbContainerID} mysql -u ${DB_USER} -p${DB_PASSWORD} -e 'USE ${DB_NAME};DROP TABLE IF EXISTS users;DROP TABLE IF EXISTS pages;'
