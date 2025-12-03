@@ -96,6 +96,10 @@ pipeline {
 			steps {
 				script {
 					echo 'Проверка количества столбцов в таблице pages'
+					def dbContainerID = sh(
+							script: "docker ps --filter name=${SWARM_STACK_NAME}_${DB_SERVICE} --format '{{.ID}}'",
+							returnStdout: true
+						).trim()
 					sh """
 					     docker exec ${dbContainerID} mysql -u ${DB_USER} -p${DB_PASSWORD} ${DB_NAME} -e "
                              SELECT COUNT(*) as column_count 
