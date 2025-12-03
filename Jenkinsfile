@@ -56,7 +56,7 @@ pipeline {
                     
                     echo 'Получение ID контейнера базы данных...'
                     def dbContainerID = sh(
-                        script: "docker service ps ${SWARM_STACK_NAME}_${DB_SERVICE} --format '{{.ID}}'",
+                        script: "docker ps --filter name=${SWARM_STACK_NAME}_${DB_SERVICE} --format '{{.ID}}'",
                         returnStdout: true
                     ).trim()
                     
