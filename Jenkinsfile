@@ -68,20 +68,22 @@ pipeline {
                     sh """
                          docker exec ${dbContainerID} mysql -u ${DB_USER} -p${DB_PASSWORD} -e 'USE ${DB_NAME};SHOW TABLES;'
                        """
-					echo 'Проверка количества полей в базе данных MySQL'
+					echo 'Проверка количества столбцов в таблице pages'
 					sh """
-					     docker exec ${dbContainerID} mysql -u ${DB_USER} -p${DB_PASSWORD} -e "
-						 SELECT COUNT(*) 
-                         FROM INFORMATION_SCHEMA.COLUMNS 
-                         WHERE TABLE_NAME='users';" > count.txt
-
-						 COLUMN_COUNT=\$(cat count.txt | tail -n 3 | tr -d '[:space:]')
-						 if [ "\$COLUMN_COUNT" -eq 5 ]; then
-                            echo 'Количество столбцов верное'
+					     docker exec ${dbContainerID} mysql -u ${DB_USER} -p${DB_PASSWORD} ${DB_NAME} -e "
+                             SELECT COUNT(*) as column_count 
+                             FROM information_schema.columns 
+                             WHERE table_name = 'pages';
+                        " > /tmp/column_count.txt
+						
+                         COLUMN_COUNT=\$(tail -1 /tmp/column_count.txt | tr -d '[:space:]')
+                         
+                         if [ "\${COLUMN_COUNT}" -eq 5 ]; then
+                             echo "Таблица pages содержит 5 столбцов"
                          else
-                            echo 'Ошибка: Неверное количество столбцов в таблице pages. Ожидалось: 5, получено: \$COLUMN_COUNT'
-							exit 1
-                         fi
+                             echo "Ошибка: В таблице users неверное количество столбцов!"
+							 exit 1
+						fi
 						 
 					   """
 					
