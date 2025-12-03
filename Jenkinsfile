@@ -76,7 +76,8 @@ pipeline {
 			steps {
 				echo "Загружаем SQL из репозитория и создаём таблицы"
                 sh """
-				docker exec ${dbContainerID} mysql -u ${DB_USER} -p${DB_PASSWORD} -e 'USE ${DB_NAME};DROP TABLE users;DROP TABLE pages;'
+				
+				docker exec ${dbContainerID} mysql -u ${DB_USER} -p${DB_PASSWORD} -e 'USE ${DB_NAME};DROP TABLE IF EXISTS users;DROP TABLE IF EXISTS pages;'
 				
                 docker exec -i ${dbContainerID} mysql -u${DB_USER} -p${DB_PASSWORD} ${DB_NAME} < dump/notepaddb.sql
                 echo "SQL из файла загружен в MySQL"
