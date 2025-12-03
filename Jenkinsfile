@@ -77,7 +77,7 @@ pipeline {
 				echo "Загружаем SQL из репозитория и создаём таблицы"
                 sh """
                 CONTAINER_ID=\$(docker ps -qf "name=${SWARM_STACK_NAME}_${DB_SERVICE}")
-                docker exec -i \$CONTAINER_ID mysql -u${DB_USER} -p${DB_PASSWORD} ${DB_NAME} < notepaddb.sql
+                docker exec -i \$CONTAINER_ID mysql -u${DB_USER} -p${DB_PASSWORD} ${DB_NAME} < dump/notepaddb.sql
                 echo "SQL из файла загружен в MySQL"
                 """
 			}
