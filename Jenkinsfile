@@ -75,7 +75,7 @@ pipeline {
                          FROM INFORMATION_SCHEMA.COLUMNS 
                          WHERE TABLE_NAME='users';" > count.txt
 
-						 COLUMN_COUNT=\$(cat count.txt | tr -d '[:space:]')
+						 COLUMN_COUNT=\$(cat count.txt | tail -n 3 | tr -d '[:space:]')
 						 if [ "\$COLUMN_COUNT" -eq 5 ]; then
                             echo 'Количество столбцов верное'
                          else
