@@ -32,8 +32,7 @@ CREATE TABLE `pages` (
   `userId` int(11) NOT NULL,
   `title` varchar(255) NOT NULL,
   `text_crop` varchar(255) NOT NULL,
-  `text` text NOT NULL,
-  `test1234` text
+  `text` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
