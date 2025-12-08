@@ -21,6 +21,9 @@ SET time_zone = "+00:00";
 -- База данных: `notepaddb`
 --
 
+CREATE DATABASE IF NOT EXISTS notepaddb;
+USE notepaddb;
+
 -- --------------------------------------------------------
 
 --
