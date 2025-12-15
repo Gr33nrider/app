@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: crudback-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: crudback
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crudback-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crudback
+  template:
+    metadata:
+      labels:
+        app: crudback
+    spec:
+      containers:
+      - name: crudback
+        image: dxrkn3ss/crud-backend
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_HOST
+          value: "mysql-service"
+        - name: DB_USER
+          value: "root"
+        - name: DB_PASSWORD
+          value: "root"
+        - name: DB_NAME
+          value: "notepaddb"
