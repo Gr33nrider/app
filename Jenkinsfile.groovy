@@ -30,7 +30,7 @@ pipeline {
         DB_USER = "root"
         DB_PASS = "root"
         DB_NAME = "notepaddb"
-        SQL_FILE = "dump/users_table.sql"
+        SQL_FILE = "dump/notepaddb.sql"
         NAMESPACE = "default"
     }
 
