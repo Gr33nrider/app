@@ -134,28 +134,81 @@ pipeline {
             }
         }
 
-        stage('Check DB Columns') {
+        stage('Check DB Encoding') {
             steps {
                 container('tools') {
-                    echo 'Проверка существования столбца name в таблице users...'
+                    echo 'Проверка кодировки БД'
                     script {
-                        def columnCheck = sh(
+                        def dbEncoding = sh(
                             script: """
                                 kubectl exec -n ${NAMESPACE} deployment/mysql -- mysql -u${DB_USER} -p${DB_PASS} -D ${DB_NAME} -N -e "
-                                SELECT COUNT(*) 
-                                FROM INFORMATION_SCHEMA.COLUMNS 
-                                WHERE TABLE_NAME='users' AND COLUMN_NAME='name';
-                                " 2>/dev/null | tr -d '[:space:]'
+                                SELECT default_character_set_name, default_collation_name 
+                                FROM information_schema.SCHEMATA 
+                                WHERE schema_name = '${DB_NAME}'
+                                " 2>/dev/null
                             """,
                             returnStdout: true
                         ).trim()
-
-                        if (columnCheck == "" || columnCheck == "0") {
-                            echo 'Ошибка: поле name отсутствует в таблице users!'
-                            error("Поле name отсутствует в таблице users!")
+                        
+                        echo "Кодировка базы данных: ${dbEncoding}"
+                        
+                        // Разделяем результат на части
+                        def encodingParts = dbEncoding.split('\t')
+                        if (encodingParts.size() >= 2) {
+                            def charset = encodingParts[0]
+                            def collation = encodingParts[1]
+                            
+                            if (charset.startsWith('utf8')) {
+                                echo "✓ База данных использует Unicode кодировку: ${charset}, collation: ${collation}"
+                            } else {
+                                echo "✗ База данных НЕ использует Unicode кодировку. Текущая: ${charset}"
+                                error("Кодировка базы данных должна быть utf8 или utf8mb4!")
+                            }
                         } else {
-                            echo "Поле name присутствует в таблице users (найдено столбцов: ${columnCheck})"
+                            error("Не удалось получить информацию о кодировке БД")
                         }
+                        
+                        // 2. Опционально: проверка кодировки важных таблиц
+                        echo '\nПроверка кодировки таблиц...'
+                        def tablesEncoding = sh(
+                            script: """
+                                kubectl exec -n ${NAMESPACE} deployment/mysql -- mysql -u${DB_USER} -p${DB_PASS} -D ${DB_NAME} -N -e "
+                                SELECT 
+                                    TABLE_NAME,
+                                    TABLE_COLLATION
+                                FROM information_schema.TABLES 
+                                WHERE TABLE_SCHEMA = '${DB_NAME}'
+                                ORDER BY TABLE_NAME
+                                " 2>/dev/null
+                            """,
+                            returnStdout: true
+                        ).trim()
+                        
+                        if (tablesEncoding) {
+                            echo "Кодировки таблиц:\n${tablesEncoding}"
+                            
+                            // Проверяем, что все таблицы используют Unicode
+                            def nonUnicodeTables = sh(
+                                script: """
+                                    kubectl exec -n ${NAMESPACE} deployment/mysql -- mysql -u${DB_USER} -p${DB_PASS} -D ${DB_NAME} -N -e "
+                                    SELECT TABLE_NAME
+                                    FROM information_schema.TABLES 
+                                    WHERE TABLE_SCHEMA = '${DB_NAME}'
+                                    AND TABLE_COLLATION NOT LIKE 'utf8%'
+                                    AND TABLE_COLLATION NOT LIKE 'utf8mb4%'
+                                    " 2>/dev/null
+                                """,
+                                returnStdout: true
+                            ).trim()
+                            
+                            if (nonUnicodeTables) {
+                                echo "✗ Найдены таблицы без Unicode кодировки:\n${nonUnicodeTables}"
+                                error("Некоторые таблицы не используют Unicode кодировку!")
+                            } else {
+                                echo "✓ Все таблицы используют Unicode кодировку"
+                            }
+                        }
+                        echo '\n✓ Проверка кодировки завершена успешно!'
                     }
                 }
             }
