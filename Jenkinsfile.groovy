@@ -134,6 +134,33 @@ pipeline {
             }
         }
 
+        stage('Check DB Columns') {
+            steps {
+                container('tools') {
+                    echo 'Проверка существования столбца name в таблице users...'
+                    script {
+                        def columnCheck = sh(
+                            script: """
+                                kubectl exec -n ${NAMESPACE} deployment/mysql -- mysql -u${DB_USER} -p${DB_PASS} -D ${DB_NAME} -N -e "
+                                SELECT COUNT(*) 
+                                FROM INFORMATION_SCHEMA.COLUMNS 
+                                WHERE TABLE_NAME='users' AND COLUMN_NAME='name';
+                                " 2>/dev/null | tr -d '[:space:]'
+                            """,
+                            returnStdout: true
+                        ).trim()
+
+                        if (columnCheck == "" || columnCheck == "0") {
+                            echo 'Ошибка: поле name отсутствует в таблице users!'
+                            error("Поле name отсутствует в таблице users!")
+                        } else {
+                            echo "Поле name присутствует в таблице users (найдено столбцов: ${columnCheck})"
+                        }
+                    }
+                }
+            }
+        }
+
         stage('Deploy Application') {
             steps {
                 container('tools') {
