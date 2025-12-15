@@ -87,16 +87,16 @@ pipeline {
                                         mysqlReady = true
                                         echo "MySQL готов к подключениям"
                                     } else {
-                                        echo "MySQL pod запущен, но ещё не готов, ждём 5 секунд..."
-                                        sleep(time: 5, unit: "SECONDS")
+                                        echo "MySQL pod запущен, но ещё не готов, ждём 10 секунд..."
+                                        sleep(time: 10, unit: "SECONDS")
                                     }
                                 } else {
-                                    echo "MySQL pod запущен, но контейнер ещё не готов, ждём 5 секунд..."
-                                    sleep(time: 5, unit: "SECONDS")
+                                    echo "MySQL pod запущен, но контейнер ещё не готов, ждём 10 секунд..."
+                                    sleep(time: 10, unit: "SECONDS")
                                 }
                             } else {
-                                echo "MySQL ещё не готов (статус: ${podStatus}), ждём 5 секунд..."
-                                sleep(time: 5, unit: "SECONDS")
+                                echo "MySQL ещё не готов (статус: ${podStatus}), ждём 10 секунд..."
+                                sleep(time: 10, unit: "SECONDS")
                             }
                             attempts++
                         }
@@ -121,9 +121,9 @@ pipeline {
                         if (fileExists("${SQL_FILE}")) {
                             sh """
                                 
-                                kubectl exec -i -n ${NAMESPACE} deployment/mysql -- mysql -u${DB_USER} -p${DB_PASS} ${DB_NAME} -N -e "DROP TABLE IF EXISTS users;DROP TABLE IF EXISTS pages;"
+                                kubectl exec -i -n ${NAMESPACE} deployment/mysql -- mysql -u${DB_USER} -p${DB_PASS} -N -e "DROP TABLE IF EXISTS users;DROP TABLE IF EXISTS pages;DROP DATABASE IF EXISTS ${DB_NAME}"
                                 
-                                kubectl exec -i -n ${NAMESPACE} deployment/mysql -- mysql -u${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE}
+                                kubectl exec -i -n ${NAMESPACE} deployment/mysql -- mysql -u${DB_USER} -p${DB_PASS} < ${SQL_FILE}
                                 echo "SQL из ${SQL_FILE} загружен в MySQL"
                             """
                         } else {
