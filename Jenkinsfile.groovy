@@ -121,7 +121,7 @@ pipeline {
                         if (fileExists("${SQL_FILE}")) {
                             sh """
                                 
-                                kubectl exec -i -n ${NAMESPACE} deployment/mysql -- mysql -u${DB_USER} -p${DB_PASS} -N -e "DROP TABLE IF EXISTS users;DROP TABLE IF EXISTS pages;DROP DATABASE IF EXISTS ${DB_NAME}"
+                                kubectl exec -i -n ${NAMESPACE} deployment/mysql -- mysql -u${DB_USER} -p${DB_PASS} -N -e "DROP DATABASE IF EXISTS ${DB_NAME}"
                                 
                                 kubectl exec -i -n ${NAMESPACE} deployment/mysql -- mysql -u${DB_USER} -p${DB_PASS} < ${SQL_FILE}
                                 echo "SQL из ${SQL_FILE} загружен в MySQL"
