@@ -95,8 +95,8 @@ pipeline {
                                     sleep(time: 10, unit: "SECONDS")
                                 }
                             } else {
-                                echo "MySQL ещё не готов (статус: ${podStatus}), ждём 10 секунд..."
-                                sleep(time: 10, unit: "SECONDS")
+                                echo "MySQL ещё не готов (статус: ${podStatus}), ждём 30 секунд..."
+                                sleep(time: 30, unit: "SECONDS")
                             }
                             attempts++
                         }
