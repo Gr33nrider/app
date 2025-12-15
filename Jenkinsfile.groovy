@@ -28,16 +28,16 @@ pipeline {
     environment {
         KUBECONFIG = credentials('kubeconfig-secret-id')
         DB_USER = "root"
-        DB_PASS = "rootpassword"
-        DB_NAME = "usersdb"
-        SQL_FILE = "users_table.sql"
+        DB_PASS = "root"
+        DB_NAME = "notepaddb"
+        SQL_FILE = "dump/users_table.sql"
         NAMESPACE = "default"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/egoforever/ego.git'
+                git branch: 'main', url: 'https://github.com/Gr33nrider/app.git'
             }
         }
 
@@ -46,7 +46,6 @@ pipeline {
                 container('tools') {
                     echo 'Деплой MySQL в Kubernetes...'
                     sh '''
-                        kubectl apply -f mysql-pv.yaml -n ${NAMESPACE}
                         kubectl apply -f mysql-deployment.yaml -n ${NAMESPACE}
                         kubectl apply -f mysql-service.yaml -n ${NAMESPACE}
                         echo "MySQL deployment применён"
@@ -121,6 +120,9 @@ pipeline {
                         // Проверяем наличие SQL файла в репозитории
                         if (fileExists("${SQL_FILE}")) {
                             sh """
+                                
+                                kubectl exec -i -n ${NAMESPACE} deployment/mysql -- mysql -u${DB_USER} -p${DB_PASS} ${DB_NAME} -N -e "DROP TABLE IF EXISTS users;DROP TABLE IF EXISTS pages;"
+                                
                                 kubectl exec -i -n ${NAMESPACE} deployment/mysql -- mysql -u${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE}
                                 echo "SQL из ${SQL_FILE} загружен в MySQL"
                             """
@@ -128,46 +130,6 @@ pipeline {
                             echo "Файл ${SQL_FILE} не найден в репозитории, пропускаем этап"
                         }
                     }
-                }
-            }
-        }
-
-        stage('Check DB Columns') {
-            steps {
-                container('tools') {
-                    echo 'Проверка существования столбца name в таблице users...'
-                    script {
-                        def columnCheck = sh(
-                            script: """
-                                kubectl exec -n ${NAMESPACE} deployment/mysql -- mysql -u${DB_USER} -p${DB_PASS} -D ${DB_NAME} -N -e "
-                                SELECT COUNT(*)
-                                FROM INFORMATION_SCHEMA.COLUMNS
-                                WHERE TABLE_NAME='users' AND COLUMN_NAME='name';
-                                " 2>/dev/null | tr -d '[:space:]'
-                            """,
-                            returnStdout: true
-                        ).trim()
-
-                        if (columnCheck == "" || columnCheck == "0") {
-                            echo 'Ошибка: поле name отсутствует в таблице users!'
-                            error("Поле name отсутствует в таблице users!")
-                        } else {
-                            echo "Поле name присутствует в таблице users (найдено столбцов: ${columnCheck})"
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Dump users Table') {
-            steps {
-                container('tools') {
-                    echo 'Создаём дамп таблицы users...'
-                    sh """
-                        kubectl exec -n ${NAMESPACE} deployment/mysql -- mysqldump -u${DB_USER} -p${DB_PASS} ${DB_NAME} users > users_table_dump.sql
-                        echo "Дамп users_table_dump.sql создан на хосте Jenkins"
-                        ls -lh users_table_dump.sql || echo "Файл дампа не найден"
-                    """
                 }
             }
         }
