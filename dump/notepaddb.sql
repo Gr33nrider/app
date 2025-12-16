@@ -21,7 +21,7 @@ SET time_zone = "+00:00";
 -- База данных: `notepaddb`
 --
 
-CREATE DATABASE IF NOT EXISTS `notepaddb` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS `notepaddb` CHARACTER SET cp1251 COLLATE utf8mb4_unicode_ci;
 USE notepaddb;
 
 -- --------------------------------------------------------
@@ -36,7 +36,7 @@ CREATE TABLE `pages` (
   `title` varchar(255) NOT NULL,
   `text_crop` varchar(255) NOT NULL,
   `text` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=cp1251 COLLATE=cp1251_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Дамп данных таблицы `pages`
