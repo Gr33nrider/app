@@ -168,7 +168,6 @@ pipeline {
                             error("Не удалось получить информацию о кодировке БД")
                         }
                         
-                        // 2. Опционально: проверка кодировки важных таблиц
                         echo '\nПроверка кодировки таблиц...'
                         def tablesEncoding = sh(
                             script: """
@@ -203,6 +202,11 @@ pipeline {
                             
                             if (nonUnicodeTables) {
                                 echo "✗ Найдены таблицы без Unicode кодировки:\n${nonUnicodeTables}"
+                                sh(
+                                    script: """
+                                    kubectl delete -f . -n default
+                                    """
+                                )
                                 error("Некоторые таблицы не используют Unicode кодировку!")
                             } else {
                                 echo "✓ Все таблицы используют Unicode кодировку"
