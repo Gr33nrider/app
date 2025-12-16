@@ -204,7 +204,8 @@ pipeline {
                                 echo "✗ Найдены таблицы без Unicode кодировки:\n${nonUnicodeTables}"
                                 sh(
                                     script: """
-                                    kubectl delete -f . -n default
+                                    kubectl delete -f mysql-deployment.yaml -n default
+                                    kubectl delete -f mysql-service.yaml -n default
                                     """
                                 )
                                 error("Некоторые таблицы не используют Unicode кодировку!")
