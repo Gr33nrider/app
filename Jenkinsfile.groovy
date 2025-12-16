@@ -162,6 +162,12 @@ pipeline {
                                 echo "✓ База данных использует Unicode кодировку: ${charset}, collation: ${collation}"
                             } else {
                                 echo "✗ База данных НЕ использует Unicode кодировку. Текущая: ${charset}"
+                                sh(
+                                    script: """
+                                    kubectl delete -f mysql-deployment.yaml -n default
+                                    kubectl delete -f mysql-service.yaml -n default
+                                    """
+                                )
                                 error("Кодировка базы данных должна быть utf8 или utf8mb4!")
                             }
                         } else {
