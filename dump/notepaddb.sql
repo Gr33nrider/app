@@ -36,7 +36,7 @@ CREATE TABLE `pages` (
   `title` varchar(255) NOT NULL,
   `text_crop` varchar(255) NOT NULL,
   `text` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=cp1251 COLLATE=cp1251_general_ci;
 
 --
 -- Дамп данных таблицы `pages`
